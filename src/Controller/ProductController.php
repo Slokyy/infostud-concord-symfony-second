@@ -105,4 +105,13 @@
       $prRepo->remove($product);
       return $this->redirect('/product');
     }
+
+
+    #[Route('/sorted-data', name: 'sorted-data')]
+    public function getSortedData(Request $request, ProductRepository $productRepository): Response
+    {
+      $sortType = $request->query->get('sort_type');
+      $products = $productRepository->sort($sortType);
+      return $this->json($products);
+    }
   }

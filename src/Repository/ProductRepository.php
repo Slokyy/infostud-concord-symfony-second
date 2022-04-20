@@ -73,4 +73,19 @@ class ProductRepository extends ServiceEntityRepository
         ;
     }
     */
+
+  public function sort($type)
+  {
+    if($type == "price_asc")
+    {
+      return $this->createQueryBuilder('p')
+          ->orderBy('p.price', 'ASC')
+          ->getQuery()
+          ->getResult();
+    }
+    return $this->createQueryBuilder('p')
+      ->orderBy('p.price', 'DESC')
+      ->getQuery()
+      ->getResult();
+  }
 }
