@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Show Product {% endblock %}
+
+{% block body %}
+
+  <div class="container">
+    <h1>Show Product</h1>
+    <div class="card text-center" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">{{ product.name }}</h5>
+        <p class="card-text"><small class="text-muted">Modified: {{ product.dateAdded | date('d / m / Y') }}</small></p>
+
+        <p class="card-text">{{ product.description }}</p>
+
+        <a href="{{ path('product-edit', {slug: product.slug}) }}" class="btn btn-warning">Edit</a>
+        <a href="{{ path('product-delete', {id: product.id}) }}" class="btn btn-danger">Delete</a>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
