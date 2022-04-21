@@ -88,4 +88,16 @@ class ProductRepository extends ServiceEntityRepository
       ->getQuery()
       ->getResult();
   }
+
+  public function getPriceWithinLimit($minPrice, $maxPrice)
+  {
+    $queryBuild = $this->createQueryBuilder('p');
+
+    return $queryBuild->select()
+            ->where($queryBuild->expr()->between('p.price', '?1', '?2'))
+            ->setParameter('1', $minPrice)
+            ->setParameter('2', $maxPrice)
+            ->getQuery()
+            ->getResult();
+  }
 }

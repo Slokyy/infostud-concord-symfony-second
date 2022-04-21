@@ -15,11 +15,14 @@
                     <a href="{{ path('product-form-submit') }}" class="btn btn-primary">
                       Create product
                     </a>
-                  <select class="form-control w-50 m-3" id="sort_type">
+                  <select class="form-control w-25 m-3" id="sort_type">
                     <option disabled selected>--Sort type--</option>
                     <option value="price_asc">Price ASC</option>
                     <option value="price_desc">Price DESC</option>
                   </select>
+                  <input type="text" name="minPrice" id="minPrice" class="minPrice" placeholder="Min Price">
+                  <input type="text" name="maxPrice" id="maxPrice" class="maxPrice" placeholder="Max Price">
+                  <button class="limitPrice btn btn-info">Limit Price</button>
                     <table id="product-table" class="table table-striped table-hover">
                       <thead>
                         <tr>
@@ -101,6 +104,69 @@
                         console.error('Error: ', error)
                       });
                     });
+
+                    // price range fetch
+
+                    let priceQuery = document.querySelector(".limitPrice");
+
+                    priceQuery.addEventListener('click', function() {
+                      let minValue = parseFloat(document.querySelector('.minPrice').value);
+                      let maxValue = parseFloat(document.querySelector('.maxPrice').value);
+                      let data = {
+                        'minValue': minValue,
+                        'maxValue': maxValue
+                      };
+                      fetch('{{ path('product-limit-price') }}', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                      })
+                      .then(res => res.json())
+                      .then(data => {
+                        data = data.success;
+
+                        let table_body = document.getElementById('product-table-body');
+
+                        let html = "";
+
+                        data.forEach(product => {
+                          let date = new Date(product.dateAdded);
+                          let day = date.getDate();
+                          day = day < 10 ? "0" + day : day;
+                          let month = date.getMonth() + 1;
+                          month = month < 10 ? "0" + month : month;
+                          let year = date.getFullYear();
+                          let fullDate = `${day} / ${month} / ${year}`;
+                          // console.log(month);
+
+                          let showUrl = '{{ path('product-show', {'slug': 'product.slug'}) }}';
+                          showUrl = showUrl.replace('product.slug', product.slug);
+
+                          let editUrl = '{{  path('product-edit', {'slug': 'product.slug'})  }}';
+                          editUrl = editUrl.replace('product.slug', product.slug);
+
+                          let deleteUrl = '{{ path('product-delete', {'id': 'product.id'}) }}';
+                          deleteUrl = deleteUrl.replace('product.id', product.id);
+
+                          html += `<tr>
+                                    <td>${product.name}</td>
+                                    <td>${product.description}</td>
+                                    <td>${product.price} RSD</td>
+                                    <td>${fullDate}</td>
+                                    <td>
+                                      <a href="${showUrl}" class="btn btn-success">Show</a>
+                                      <a href="${editUrl}" class="btn btn-warning">Edit</a>
+                                      <a href="${deleteUrl}" class="btn btn-danger">Delete</a>
+                                    </td>
+                                </tr>`;
+                        });
+                        table_body.innerHTML = html;
+
+                      }).catch(error => console.error("Error: ", error));
+                    });
+
                   </script>
                 {% else %}
                     <h1>Nema proizvoda</h1>

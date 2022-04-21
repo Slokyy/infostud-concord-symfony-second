@@ -91,6 +91,17 @@
       return $this->render('product/edit.html.twig', ['editUserData' => $editUserOldData]);
     }
 
+
+    /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\ORMException
+     */
+    #[Route('/edit/{slug}', name: 'edit-update', methods: ['PUT'])]
+    public function editPutProduct($slug, Request $request, Product $product, ProductRepository $prRepo): Response
+    {
+      return new Response("Bonzai");
+    }
+
     /**
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\ORMException
@@ -113,5 +124,15 @@
       $sortType = $request->query->get('sort_type');
       $products = $productRepository->sort($sortType);
       return $this->json($products);
+    }
+
+    #[Route('/price-limit', name: 'limit-price', methods: 'POST')]
+    public function getPriceLimited(Request $request, ProductRepository $productRepository)
+    {
+      $parameters = json_decode($request->getContent(), true);
+      $minValue = $parameters['minValue'];
+      $maxValue = $parameters['maxValue'];
+      $products = $productRepository->getPriceWithinLimit($minValue, $maxValue);
+      return $this->json(['success' => $products]);
     }
   }
