@@ -7,6 +7,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Product|null find($id, $lockMode = null, $lockVersion = null)
@@ -99,5 +100,15 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('2', $maxPrice)
             ->getQuery()
             ->getResult();
+  }
+
+  public function getProductsByDate($date)
+  {
+    $queryBuild = $this->createQueryBuilder('p');
+    return $queryBuild->select()
+      ->andWhere('p.date_added = :date')
+      ->setParameter('date', $date)
+      ->getQuery()
+      ->getResult();
   }
 }

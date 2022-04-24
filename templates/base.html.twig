@@ -15,21 +15,26 @@
                     <a href="{{ path('product-form-submit') }}" class="btn btn-primary">
                       Create product
                     </a>
-                  <select class="form-control w-25 m-3" id="sort_type">
-                    <option disabled selected>--Sort type--</option>
-                    <option value="price_asc">Price ASC</option>
-                    <option value="price_desc">Price DESC</option>
-                  </select>
-                  <input type="text" name="minPrice" id="minPrice" class="minPrice" placeholder="Min Price">
-                  <input type="text" name="maxPrice" id="maxPrice" class="maxPrice" placeholder="Max Price">
-                  <button class="limitPrice btn btn-info">Limit Price</button>
+                  <div class="filter-group">
+
+                    <select class="form-control w-25 m-3" id="sort_type">
+                      <option disabled selected>--Sort type--</option>
+                      <option value="price_asc">Price ASC</option>
+                      <option value="price_desc">Price DESC</option>
+                    </select>
+                    <input type="date" name="dateFilter" id="dateFilter" class="dateFilter">
+
+                    <input type="text" name="minPrice" id="minPrice" class="minPrice" placeholder="Min Price">
+                    <input type="text" name="maxPrice" id="maxPrice" class="maxPrice" placeholder="Max Price">
+                    <button class="limitPrice btn btn-info">Limit Price</button>
+                  </div>
                     <table id="product-table" class="table table-striped table-hover">
                       <thead>
                         <tr>
                           <th>Name</th>
                           <th>Description</th>
                           <th>Price</th>
-                          <th>Date created</th>
+                          <th>Date modified</th>
                           <th>Options</th>
                         </tr>
                       </thead>
@@ -62,44 +67,7 @@
                       })
                         .then(response => response.json())
                         .then(data => {
-                          let table_body = document.getElementById('product-table-body');
-
-                          let html = "";
-
-                          for(let i = 0; i < data.length; i++)
-                          {
-                            let date = new Date(data[i].dateAdded);
-                            let day = date.getDate();
-                            day = day < 10 ? "0" + day : day;
-                            let month = date.getMonth() + 1;
-                            month = month < 10 ? "0" + month : month;
-                            let year = date.getFullYear();
-                            let fullDate = `${day} / ${month} / ${year}`;
-                            console.log(month);
-
-                            let showUrl = '{{ path('product-show', {'slug': 'product.slug'}) }}';
-                            showUrl = showUrl.replace('product.slug', data[i].slug);
-
-                            let editUrl = '{{  path('product-edit', {'slug': 'product.slug'})  }}';
-                            editUrl = editUrl.replace('product.slug', data[i].slug);
-
-                            let deleteUrl = '{{ path('product-delete', {'id': 'product.id'}) }}';
-                            deleteUrl = deleteUrl.replace('product.id', data[i].id);
-
-                            html += `<tr>
-                                    <td>${data[i].name}</td>
-                                    <td>${data[i].description}</td>
-                                    <td>${data[i].price} RSD</td>
-                                    <td>${fullDate}</td>
-                                    <td>
-                                      <a href="${showUrl}" class="btn btn-success">Show</a>
-                                      <a href="${editUrl}" class="btn btn-warning">Edit</a>
-                                      <a href="${deleteUrl}" class="btn btn-danger">Delete</a>
-                                    </td>
-                                </tr>`;
-                          }
-
-                          table_body.innerHTML = html;
+                          generateJsonHtmlTemplate(data);
                         }).catch((error) =>{
                         console.error('Error: ', error)
                       });
@@ -126,46 +94,90 @@
                       .then(res => res.json())
                       .then(data => {
                         data = data.success;
-
-                        let table_body = document.getElementById('product-table-body');
-
-                        let html = "";
-
-                        data.forEach(product => {
-                          let date = new Date(product.dateAdded);
-                          let day = date.getDate();
-                          day = day < 10 ? "0" + day : day;
-                          let month = date.getMonth() + 1;
-                          month = month < 10 ? "0" + month : month;
-                          let year = date.getFullYear();
-                          let fullDate = `${day} / ${month} / ${year}`;
-                          // console.log(month);
-
-                          let showUrl = '{{ path('product-show', {'slug': 'product.slug'}) }}';
-                          showUrl = showUrl.replace('product.slug', product.slug);
-
-                          let editUrl = '{{  path('product-edit', {'slug': 'product.slug'})  }}';
-                          editUrl = editUrl.replace('product.slug', product.slug);
-
-                          let deleteUrl = '{{ path('product-delete', {'id': 'product.id'}) }}';
-                          deleteUrl = deleteUrl.replace('product.id', product.id);
-
-                          html += `<tr>
-                                    <td>${product.name}</td>
-                                    <td>${product.description}</td>
-                                    <td>${product.price} RSD</td>
-                                    <td>${fullDate}</td>
-                                    <td>
-                                      <a href="${showUrl}" class="btn btn-success">Show</a>
-                                      <a href="${editUrl}" class="btn btn-warning">Edit</a>
-                                      <a href="${deleteUrl}" class="btn btn-danger">Delete</a>
-                                    </td>
-                                </tr>`;
-                        });
-                        table_body.innerHTML = html;
+                        generateJsonHtmlTemplate(data);
 
                       }).catch(error => console.error("Error: ", error));
                     });
+
+                    let dateFilter = document.querySelector('.dateFilter');
+                    dateFilter.addEventListener('change', function() {
+                      let dateFilterValue = dateFilter.value;
+                      dateFilterValue = new Date(dateFilterValue);
+                      console.log(dateFilterValue);
+
+                      fetch('{{ path('product-date_results') }}', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          "dateVal": dateFilterValue
+                        }),
+                      })
+                      .then(result => result.json())
+                      .then(data => {
+                        let products = data.dateResult;
+                        console.log(products);
+                        generateJsonHtmlTemplate(products);
+                      }).catch(err => console.error("Date data Error!:", err ));
+
+                    });
+
+                    function cleanDate(date) {
+                      let dateF = new Date(date);
+                      let dayF = dateF.getDate();
+                      dayF = dayF < 10 ? "0" + dayF : dayF;
+                      let monthF = dateF.getMonth() + 1;
+                      monthF = monthF < 10 ? "0" + monthF : monthF;
+                      let yearF = dateF.getFullYear();
+                      let fullDateF = `${dayF} / ${monthF} / ${yearF}`;
+                      return fullDateF;
+                    }
+
+                    function generateJsonHtmlTemplate(jsonResult) {
+                      let table_body = document.getElementById('product-table-body');
+
+                      let html = "";
+                      if(jsonResult.length > 0) {
+                        jsonResult.forEach(product => {
+
+                            let date = new Date(product.dateAdded);
+                            let day = date.getDate();
+                            day = day < 10 ? "0" + day : day;
+                            let month = date.getMonth() + 1;
+                            month = month < 10 ? "0" + month : month;
+                            let year = date.getFullYear();
+                            let fullDate = `${day} / ${month} / ${year}`;
+                            // console.log(month);
+
+                            let showUrl = '{{ path('product-show', {'slug': 'product.slug'}) }}';
+                            showUrl = showUrl.replace('product.slug', product.slug);
+
+                            let editUrl = '{{  path('product-edit', {'slug': 'product.slug'})  }}';
+                            editUrl = editUrl.replace('product.slug', product.slug);
+
+                            let deleteUrl = '{{ path('product-delete', {'id': 'product.id'}) }}';
+                            deleteUrl = deleteUrl.replace('product.id', product.id);
+
+                            html += `<tr>
+                                      <td>${product.name}</td>
+                                      <td>${product.description}</td>
+                                      <td>${product.price} RSD</td>
+                                      <td>${fullDate}</td>
+                                      <td>
+                                        <a href="${showUrl}" class="btn btn-success">Show</a>
+                                        <a href="${editUrl}" class="btn btn-warning">Edit</a>
+                                        <a href="${deleteUrl}" class="btn btn-danger">Delete</a>
+                                      </td>
+                                  </tr>`;
+
+
+                        });
+                      } else {
+                      html += `No products found at that criteria`;
+                    }
+                      table_body.innerHTML = html;
+                    }
 
                   </script>
                 {% else %}

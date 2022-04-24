@@ -135,4 +135,18 @@
       $products = $productRepository->getPriceWithinLimit($minValue, $maxValue);
       return $this->json(['success' => $products]);
     }
+
+    /**
+     * @throws \Exception
+     */
+    #[Route('/date-results', name: 'date_results', methods: 'POST')]
+    public function getResultsOnDate(Request $request, ProductRepository $productRepository)
+    {
+      $jsonParam = json_decode($request->getContent(), true);
+      $date = new \DateTime($jsonParam['dateVal']);
+      $date = $date->format('Y-m-d');
+      $products = $productRepository->getProductsByDate($date);
+      return $this->json(['dateResult' => $products]);
+    }
+
   }
